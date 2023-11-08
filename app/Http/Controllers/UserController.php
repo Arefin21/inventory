@@ -106,10 +106,10 @@ class UserController extends Controller {
             //Pass Reset Token Issue
             $token = JWTToken::CreateTokenForSetPassword($request->input('email'));
             return response()->json([
-                'statis'  => 'success',
+                'status'  => 'success',
                 'message' => 'OTP Verification Successfully',
-                'token'   => $token,
-            ], 200);
+                //'token'   => $token,
+            ], 200)->cookie('token', $token, 60 * 24 * 30);
 
         } else {
             return response()->json([
@@ -130,7 +130,7 @@ class UserController extends Controller {
             ], 200);
         } catch (Exception $e) {
             return response()->json([
-                'status'  => 'Failed',
+                'status'  => 'Fail',
                 'message' => 'Something Went Wrong',
             ], 401);
         }

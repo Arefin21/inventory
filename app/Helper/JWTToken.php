@@ -32,13 +32,16 @@ class JWTToken {
 
     public static function VerifyToken($token): string {
         try {
-            $key = 'JWT_KEY';
-            $decode = JWT::decode($token, new Key($key, 'HS256'));
-            return $decode->userEmail;
+            if ($token == null) {
+                return 'unauthorized';
+            } else {
+                $key = 'JWT_KEY';
+                $decode = JWT::decode($token, new Key($key, "HS256"));
+                return $decode->userEmail;
+            }
         } catch (Exception $e) {
             return 'unauthorized';
         }
-
     }
 
 }

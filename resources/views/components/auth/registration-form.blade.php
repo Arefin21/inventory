@@ -39,3 +39,38 @@
         </div>
     </div>
 </div>
+
+<script>
+   async function onRegistration(){
+        let email=document.getElementById('email').value;
+        let firstName=document.getElementById('firstName').value;
+        let lastName=document.getElementById('lastName').value;
+        let mobile=document.getElementById('mobile').value;
+        let password=document.getElementById('password').value;
+
+        if(email.length===0){
+        errorToast('Email is required');
+    }else if(firstName.length===0){
+        errorToast('FisrtName is required');
+    }else if(lastName.length===0){
+        errorToast('LastName is required');
+    }else if(mobile.length===0){
+        errorToast('Mobile is required');
+    }else if(password.length===0){
+        errorToast('Password is required');
+    }else{
+        showLoader();
+        let res=await axios.post("/UserRegistration",{email:email,firstName:firstName,lastName:lastName,mobile:mobile,password:password});
+        hideLoader()
+        if(res.status==200 && res.data['status']==='success'){
+            successToast(res.data['message']);
+            setTimeout(function(){
+                window.location.href="/userLogin";
+            },2000)
+            
+        }else{
+            errorToast(res.data['message']);
+        }
+    }
+}
+</script>
