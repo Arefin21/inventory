@@ -31,6 +31,10 @@ class UserController extends Controller {
         return view('pages.dashboard.dashboard-page');
     }
 
+    function profilePage(): View {
+        return view('pages.dashboard.profile-page');
+    }
+
     function UserRegistration(Request $request) {
         try {
             User::create([
@@ -57,11 +61,11 @@ class UserController extends Controller {
     function UserLogin(Request $request) {
         $count = User::where('email', '=', $request->input('email'))
             ->where('password', '=', $request->input('password'))
-            ->count();
+            ->select('id')->first();
 
-        if ($count == 1) {
+        if ($count !== null) {
 
-            $token = JWTToken::CreateToken($request->input('email'));
+            $token = JWTToken::CreateToken($request->input('email'), $count->id);
             return response()->json([
                 'status'  => 'success',
                 'message' => 'User Login Successfully',
@@ -135,5 +139,44 @@ class UserController extends Controller {
             ], 401);
         }
 
+    }
+    function UserLogout() {
+        return redirect('/userLogin')->cookie('token', '', -1);
+    }
+
+    function userProfile(Request $request) {
+        $email = $request->header('email');
+        //dd($email);
+        $user = User::where('email', '=', $email)->first();
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Request Successful',
+            'data'    => $user,
+        ], 200);
+    }
+
+    function updateProfile(Request $request) {
+        try {
+            $email = $request->header('email');
+            $firstName = $request->input('firstName');
+            $lastName = $request->input('lastName');
+            $mobile = $request->input('mobile');
+            $password = $request->input('password');
+            User::where('email', '=', $email)->update([
+                'firstName' => $firstName,
+                'lastName'  => $lastName,
+                'mobile'    => $mobile,
+                'password'  => $password,
+            ]);
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Profile Update Successfully',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'  => 'fail',
+                'message' => 'Something went wrong',
+            ], 200);
+        }
     }
 }
