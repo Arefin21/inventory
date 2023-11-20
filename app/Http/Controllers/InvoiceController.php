@@ -6,7 +6,6 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use Exception;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -96,14 +95,23 @@ class InvoiceController extends Controller {
             }
 
             DB::commit();
-            return response()->json(['status' => 'success', 'message' => 'Invoice created successfully']);
-        } catch (QueryException $e) {
+
+            return 1;
+
+        } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()], 500);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+            return 0;
         }
+
+        //     DB::commit();
+        //     return response()->json(['status' => 'success', 'message' => 'Invoice created successfully']);
+        // } catch (QueryException $e) {
+        //     DB::rollBack();
+        //     return response()->json(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()], 500);
+        // } catch (\Exception $e) {
+        //     DB::rollBack();
+        //     return response()->json(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()], 500);
+        // }
     }
 
     function invoiceSelect(Request $request) {
