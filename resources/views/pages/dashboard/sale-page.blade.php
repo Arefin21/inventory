@@ -40,16 +40,17 @@
                     </div>
                     <hr class="mx-0 my-2 p-0 bg-secondary"/>
                     <div class="row">
-                       <div class="col-12">
-                           <p class="text-bold text-xs my-1 text-dark"> TOTAL: <i class="bi bi-currency-dollar"></i> <span id="total"></span></p>
-                           <p class="text-bold text-xs my-2 text-dark"> PAYABLE: <i class="bi bi-currency-dollar"></i>  <span id="payable"></span></p>
-                           <p class="text-bold text-xs my-1 text-dark"> VAT(5%): <i class="bi bi-currency-dollar"></i>  <span id="vat"></span></p>
-                           <span class="text-xxs">Discount(%):</span>
-                           <input onkeydown="return false" value="0" min="0" type="number" step="0.25" onchange="DiscountChange()" class="form-control w-40 form-control-sm" id="discountP"/>
-                           <p>
-                              <button onclick="createInvoice()" class="btn btn-sm my-2 bg-gradient-primary w-40">Confirm</button>
-                           </p>
-                       </div>
+    <div class="col-12">
+        <p class="text-bold text-xs my-1 text-dark"> TOTAL: <i class="bi bi-currency-dollar"></i> <span id="total"></span></p>
+        <p class="text-bold text-xs my-2 text-dark"> PAYABLE: <i class="bi bi-currency-dollar"></i>  <span id="payable"></span></p>
+        <p class="text-bold text-xs my-1 text-dark"> VAT(5%): <i class="bi bi-currency-dollar"></i>  <span id="vat"></span></p>
+        <p class="text-bold text-xs my-1 text-dark"> Discount: <i class="bi bi-currency-dollar"></i>  <span id="discount"></span></p>
+        <span class="text-xxs">Discount(%):</span>
+        <input onkeydown="return false" value="0" min="0" type="number" step="0.25" onchange="DiscountChange()" class="form-control w-40 " id="discountP"/>
+        <p>
+            <button onclick="createInvoice()" class="btn btn-sm my-2 bg-gradient-primary w-40">Confirm</button>
+        </p>
+    </div>
                         <div class="col-12 p-2">
 
                         </div>
@@ -61,7 +62,7 @@
                 <div class="shadow-sm h-100 bg-white rounded-3 p-3">
                     <table class="table  w-100" id="productTable">
                         <thead class="w-100">
-                        <tr class="text-xs">
+                        <tr class="text-xs text-bold">
                             <td>Product</td>
                             <td>Pick</td>
                         </tr>
@@ -76,7 +77,7 @@
                 <div class="shadow-sm h-100 bg-white rounded-3 p-3">
                     <table class="table table-sm w-100" id="customerTable">
                         <thead class="w-100">
-                        <tr class="text-xs">
+                        <tr class="text-xs text-bold">
                             <td>Customer</td>
                             <td>Pick</td>
                         </tr>
@@ -124,6 +125,12 @@
    
 
     <script>
+        (async()=>{
+            showLoader();
+            await CustomerList();
+            await ProductList();
+            hideLoader();
+        })()
 
         let InvoiceItemList=[];
 
@@ -149,6 +156,15 @@
             })
         }
 
+        function removeItem(index){
+            InvoiceItemList.splice(index,1);
+            ShowInvoiceItem()
+        }
+
+        function DiscountChange(){
+            CalculateGrandTotal();
+        }
+
         function CalculateGrandTotal(){
             let Total=0;
             let Vat=0;
@@ -165,28 +181,27 @@
                 Vat=((Total*5)/100).toFixed(2);
             }
             else{
-                Discount=(Total*discountPercentage)/100;
+                Discount=((Total*discountPercentage)/100).toFixed(2);
                 Total=(Total-((Total*discountPercentage)/100)).toFixed(2);
                 Vat=((Total*5)/100).toFixed(2);
-            }
+               }
+            
             Payable=(parseFloat(Total)+parseFloat(Vat)).toFixed(2);
+
             document.getElementById('total').innerText=Total;
             document.getElementById('payable').innerText=Payable;
             document.getElementById('vat').innerText=Vat;
             document.getElementById('discount').innerText=Discount;
+            
         }
 
-        function removeItem(index){
-            InvoiceItemList.splice(index,1);
-            ShowInvoiceItem()
-        }
 
         function add(){
            let PId=document.getElementById('PId').value; 
            let PName=document.getElementById('PName').value; 
            let PPrice=document.getElementById('PPrice').value; 
            let PQty=document.getElementById('PQty').value; 
-           let PTotalPrice=(parseFloat(PPrice)*parseFloat(PQty).toFixed(2));
+           let PTotalPrice=(parseFloat(PPrice)*parseFloat(PQty)).toFixed(2);
            
            if(PId.length===0){
             errorToast('Product ID Required');
@@ -203,7 +218,7 @@
            else{
             let item={product_name:PName,product_id:PId,qty:PQty,sale_price:PTotalPrice};
             InvoiceItemList.push(item);
-            consol.log(InvoiceItemList);
+            console.log(InvoiceItemList);
             $('#create-modal').modal('hide')
             ShowInvoiceItem();
            }
@@ -218,7 +233,7 @@
 
 
        async function CustomerList(){
-        let res=await axios.post('/list-customer');
+        let res=await axios.get('/list-customer');
         let customerList=$('#customerList');
         let customerTable=$('#customerTable');
         customerTable.DataTable().destroy();
@@ -227,19 +242,19 @@
         res.data.forEach(function(item, index){
             let row=`<tr class="text-xs">
                 
-                <td><i class="bi bi-person"></i>${$item['name']}</td>
+                <td><i class="bi bi-person"></i>${item['name']}</td>
                 <td><a data-name="${item['name']}" data-email="${item['email']}" data-id="${item['id']}" class=
                  "btn btn-outline-dark addCustomer text-xxs px-2 py-1 btn-sm m-0">Add</a></td>
                 </tr>`
                 customerList.append(row)
         });
 
-        $('.#addCustomer').on('click',async function () {
+        $('.addCustomer').on('click',async function () {
             let CName=$(this).data('name');
             let CEmail=$(this).data('email');
             let CId=$(this).data('id');
 
-            $("#Cname").text(Cname);
+            $("#CName").text(CName);
             $("#CEmail").text(CEmail);
             $("#CId").text(CId);
         });
@@ -262,10 +277,10 @@
 
             let row=`<tr class="text-xs">
                 
-                <td><img class="w-10" src="${item['img_url']}"/>${$item['name']}(${item['price']})</td>
+                <td><img class="w-10" src="${item['img_url']}"/>${item['name']}(${item['price']})</td>
                 <td><a data-name="${item['name']}" data-price="${item['price']}" data-id="${item['id']}" class=
                  "btn btn-outline-dark addProduct text-xxs px-2 py-1 addProduct btn-sm m-0">Add</a></td>
-                </tr>`
+                </tr>`;
                 productList.append(row)
 
         })
@@ -273,7 +288,7 @@
             let PName=$(this).data('name');
             let PPrice=$(this).data('price');
             let PId=$(this).data('id');
-            appModal(PId,PName,PPrice)
+            addModal(PId,PName,PPrice)
         });
 
         new DataTable('#productTable',{
@@ -282,6 +297,13 @@
             info:false,
             lengthChange:false
         });
+
+    //     $('#productTable').DataTable({
+    //     order: [[0, 'desc']],
+    //     scrollCollapse: false,
+    //     info: false,
+    //     lengthChange: false
+    // });
     }
 
         async function createInvoice(){
@@ -313,6 +335,7 @@
         let res=await axios.post('/invoice-create',Data)
         hideLoader();
         if(res.data===1){
+            window.location.href='/invoicePage'
             successToast("Invoice Created");
         }else{
             errorToast("Something Went Wrong");
